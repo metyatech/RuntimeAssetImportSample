@@ -3,4 +3,4 @@
 	url = https://github.com/metyatech/RuntimeAssetImportPlugin.git
 [submodule "UnrealBuildRunTestScript"]
 	path = UnrealBuildRunTestScript
-	url = https://github.com/Udon-Tobira/UnrealBuildRunTestScript.git
+	url = https://github.com/metyatech/UnrealBuildRunTestScript.git
