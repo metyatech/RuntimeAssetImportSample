@@ -1,0 +1,27 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "5.4",
+	"Category": "",
+	"Description": "Minimal UE5.4 host project for RuntimeAssetImportPlugin automated testing",
+	"Modules": [
+		{
+			"Name": "RuntimeAssetImportSample",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "RuntimeAssetImport",
+			"Enabled": true
+		},
+		{
+			"Name": "ProceduralMeshComponent",
+			"Enabled": true
+		},
+		{
+			"Name": "GeometryScriptingCore",
+			"Enabled": true
+		}
+	]
+}

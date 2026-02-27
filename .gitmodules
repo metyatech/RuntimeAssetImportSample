@@ -1,3 +1,6 @@
-[submodule "Plugins/RuntimeAssetImportPlugin"]
-	path = Plugins/RuntimeAssetImportPlugin
-	url = https://github.com/Udon-Tobira/RuntimeAssetImportPlugin.git
+[submodule "Plugins/RuntimeAssetImport"]
+	path = Plugins/RuntimeAssetImport
+	url = https://github.com/metyatech/RuntimeAssetImportPlugin.git
+[submodule "UnrealBuildRunTestScript"]
+	path = UnrealBuildRunTestScript
+	url = https://github.com/Udon-Tobira/UnrealBuildRunTestScript.git

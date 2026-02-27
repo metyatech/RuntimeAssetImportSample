@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: [self-hosted, windows]
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            /*
+            !/Content/
+          sparse-checkout-cone-mode: false
+
+      - name: Init submodules
+        run: git submodule update --init --recursive --force -- Plugins/ UnrealBuildRunTestScript
+
+      - name: Verify
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File .\Verify.ps1
