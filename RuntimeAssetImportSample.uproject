@@ -18,10 +18,6 @@
 		{
 			"Name": "ProceduralMeshComponent",
 			"Enabled": true
-		},
-		{
-			"Name": "GeometryScriptingCore",
-			"Enabled": true
 		}
 	]
 }

@@ -7,6 +7,7 @@ public class RuntimeAssetImportSampleTarget : TargetRules
         Type = TargetType.Game;
         DefaultBuildSettings = BuildSettingsVersion.Latest;
         IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
+        GlobalDefinitions.Add("__has_feature(x)=0");
         ExtraModuleNames.Add("RuntimeAssetImportSample");
     }
 }

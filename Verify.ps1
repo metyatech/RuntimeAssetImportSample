@@ -54,6 +54,56 @@ function Resolve-ToolPath {
     throw "Required command not found: $Name"
 }
 
+function Get-CleanTrackedConfigFiles {
+    param([string]$RepoRoot)
+
+    $trackedConfigFiles = & git -C $RepoRoot ls-files -- 'Config/*.ini'
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Failed to enumerate tracked config files.'
+    }
+
+    $cleanConfigFiles = @()
+    foreach ($relativePath in $trackedConfigFiles) {
+        $isDirty = & git -C $RepoRoot diff --quiet -- $relativePath
+        if ($LASTEXITCODE -eq 0) {
+            $cleanConfigFiles += $relativePath
+            continue
+        }
+        if ($LASTEXITCODE -eq 1) {
+            continue
+        }
+        throw "Failed to inspect config file dirtiness: $relativePath"
+    }
+
+    return $cleanConfigFiles
+}
+
+function Restore-GeneratedConfigChanges {
+    param(
+        [string]$RepoRoot,
+        [string[]]$RelativePaths
+    )
+
+    foreach ($relativePath in $RelativePaths) {
+        & git -C $RepoRoot diff --quiet -- $relativePath
+        if ($LASTEXITCODE -eq 0) {
+            continue
+        }
+        if ($LASTEXITCODE -ne 1) {
+            throw "Failed to inspect post-verify config dirtiness: $relativePath"
+        }
+
+        & git -C $RepoRoot restore --source=HEAD --worktree -- $relativePath
+        if ($LASTEXITCODE -ne 0) {
+            throw "Failed to restore generated config drift: $relativePath"
+        }
+    }
+}
+
+$repoRoot = $null
+$cleanTrackedConfigFiles = @()
+$exitCode = 0
+
 try {
     $repoRoot = (Resolve-Path $PSScriptRoot).Path
     Set-Location $repoRoot
@@ -75,6 +125,8 @@ try {
     Write-Info "Repo: $repoRoot"
     Write-Info "UE: $ueVersion ($engineRoot)"
 
+    $cleanTrackedConfigFiles = Get-CleanTrackedConfigFiles -RepoRoot $repoRoot
+
     if (-not $SkipFormat) {
         Write-Info 'Running C++ format check (clang-format --dry-run --Werror) ...'
         $clangFormat = Resolve-ToolPath -Name 'clang-format' -EngineRoot $engineRoot
@@ -82,7 +134,7 @@ try {
         if (Test-Path -LiteralPath $pluginSrcDir) {
             $formatExtensions = @('.h', '.hh', '.hpp', '.cpp', '.cc', '.cxx')
             $formatFiles = & git -C (Join-Path $repoRoot 'Plugins\RuntimeAssetImport') ls-files -- 'Source'
-            foreach ($file in ($formatFiles | Where-Object { $formatExtensions -contains [IO.Path]::GetExtension($_) })) {
+            foreach ($file in ($formatFiles | Where-Object { $formatExtensions -contains [IO.Path]::GetExtension($_) -and $_ -notlike 'Source/ThirdParty/*' })) {
                 $fullPath = Join-Path (Join-Path $repoRoot 'Plugins\RuntimeAssetImport') $file
                 & $clangFormat --dry-run --Werror --style=file $fullPath
                 if ($LASTEXITCODE -ne 0) { throw "clang-format check failed: $file" }
@@ -115,9 +167,16 @@ try {
     }
 
     Write-Info 'VERIFY PASSED'
-    exit 0
+    $exitCode = 0
 }
 catch {
     Write-Err $_.Exception.Message
-    exit 1
+    $exitCode = 1
 }
+finally {
+    if ($null -ne $repoRoot -and $cleanTrackedConfigFiles.Count -gt 0) {
+        Restore-GeneratedConfigChanges -RepoRoot $repoRoot -RelativePaths $cleanTrackedConfigFiles
+    }
+}
+
+exit $exitCode
