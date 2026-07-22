@@ -7,7 +7,7 @@ on:
 jobs:
   verify:
     runs-on: [self-hosted, windows]
-    timeout-minutes: 60
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
